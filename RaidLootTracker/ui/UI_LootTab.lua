@@ -516,8 +516,9 @@ end
 
 function UI.RefreshCandidates()
     local ci      = GL.Loot.GetCurrentItem()
-    local content = UI.lootPanel and UI.lootPanel.candContent
-    if not content then GL.Print("[DBG] RefreshCandidates: no content"); return end
+    local panel   = UI.lootPanel
+    local content = panel and panel.candContent
+    if not content then return end
     for _, r in ipairs(candidateRows) do r:Hide() end
     candidateRows = {}
 
@@ -526,6 +527,11 @@ function UI.RefreshCandidates()
         table.insert(sorted, { name = name, prio = data.prio })
     end
     table.sort(sorted, function(a, b) return a.prio < b.prio end)
+
+    -- Kandidaten-Bereich einblenden wenn Einträge vorhanden, sonst verstecken
+    local hasCands = #sorted > 0
+    if panel.candScroll then panel.candScroll:SetShown(hasCands) end
+    if panel.candLabel  then panel.candLabel:SetShown(hasCands)  end
 
     local isML = GL.IsMasterLooter()
     local yOff = 0
