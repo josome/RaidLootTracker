@@ -537,8 +537,8 @@ function UI.RefreshRollResults()
     for _, entry in ipairs(sorted) do
         local isWinner = entry.name == ci.winner
         local row = CreateFrame("Frame", nil, content)
-        row:SetPoint("TOPLEFT", content, "TOPLEFT", 0, yOff)
-        row:SetPoint("RIGHT",   content, "RIGHT",  -30, 0)
+        row:SetPoint("TOPLEFT",  content, "TOPLEFT",  0, yOff)
+        row:SetPoint("TOPRIGHT", content, "TOPRIGHT", 0, yOff)
         row:SetHeight(24)
 
         if isWinner then
@@ -547,9 +547,61 @@ function UI.RefreshRollResults()
             bg:SetColorTexture(1, 0.8, 0, 0.15)
         end
 
+        -- Layout von rechts aufbauen damit kein Overlap entsteht:
+        -- [name][prio] ... [roll][assign][×]
+        local isML = GL.IsMasterLooter()
+
+        -- X-Button ganz rechts (nur ML), aligned mit Session-Loot
+        local xBtn
+        if isML then
+            local fullName = entry.fullName
+            xBtn = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
+            xBtn:SetSize(18, 18)
+            xBtn:SetPoint("RIGHT", row, "RIGHT", 0, 0)
+            xBtn:SetText("×")
+            xBtn:SetScript("OnClick", function()
+                GL.Loot.GetCurrentItem().candidates[fullName] = nil
+                UI.RefreshRollResults()
+            end)
+        end
+
+        -- Assign-Button links vom X (eligible Spieler)
+        local assignBtn
+        if entry.eligible then
+            assignBtn = MakeButton(row, "Assign", 80, 20, function()
+                GL.Loot.AssignLoot(entry.name)
+            end)
+            if xBtn then
+                assignBtn:SetPoint("RIGHT", xBtn, "LEFT", -4, 0)
+            else
+                assignBtn:SetPoint("RIGHT", row, "RIGHT", 0, 0)
+            end
+            assignBtn:SetEnabled(isML and not ci.rollState.active)
+        end
+
+        -- Roll-Ergebnis rechts-verankert links vom Assign (eligible, feste Position)
+        if entry.eligible then
+            local rollText = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+            rollText:SetWidth(36)
+            rollText:SetJustifyH("RIGHT")
+            if assignBtn then
+                rollText:SetPoint("RIGHT", assignBtn, "LEFT", -6, 0)
+            elseif xBtn then
+                rollText:SetPoint("RIGHT", xBtn, "LEFT", -6, 0)
+            else
+                rollText:SetPoint("RIGHT", row, "RIGHT", -6, 0)
+            end
+            if entry.roll then
+                rollText:SetText("|cff00ff00" .. entry.roll .. "|r")
+            else
+                rollText:SetText("|cff888888—|r")
+            end
+        end
+
+        -- Name links
         local nameText = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
         nameText:SetPoint("LEFT", row, "LEFT", 4, 0)
-        nameText:SetWidth(160)
+        nameText:SetWidth(130)
         if isWinner then
             nameText:SetText("|cffffcc00★ " .. entry.name .. "|r")
         elseif not entry.eligible then
@@ -558,54 +610,14 @@ function UI.RefreshRollResults()
             nameText:SetText(entry.name)
         end
 
+        -- Prio links vom Namen
         local prioText = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
         prioText:SetPoint("LEFT", nameText, "RIGHT", 4, 0)
-        prioText:SetWidth(60)
+        prioText:SetWidth(50)
         if not entry.eligible then
             prioText:SetText("|cff888888Prio " .. entry.prio .. "|r")
         else
             prioText:SetText("Prio " .. entry.prio)
-        end
-
-        if entry.eligible then
-            local rollText = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-            rollText:SetPoint("LEFT", prioText, "RIGHT", 4, 0)
-            rollText:SetWidth(60)
-            if entry.roll then
-                rollText:SetText("|cff00ff00" .. entry.roll .. "|r")
-            else
-                rollText:SetText("|cff888888—|r")
-            end
-        end
-
-        local isML = GL.IsMasterLooter()
-
-        -- X-Button ganz rechts (nur ML), WoW-Style wie Session-Loot
-        if isML then
-            local fullName = entry.fullName
-            local xBtn = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
-            xBtn:SetSize(18, 18)
-            xBtn:SetPoint("RIGHT", row, "RIGHT", 0, 0)
-            xBtn:SetText("×")
-            xBtn:SetScript("OnClick", function()
-                GL.Loot.GetCurrentItem().candidates[fullName] = nil
-                UI.RefreshRollResults()
-            end)
-
-            -- Assign-Button links vom X (nur eligible)
-            if entry.eligible then
-                local assignBtn = MakeButton(row, "Assign", 80, 20, function()
-                    GL.Loot.AssignLoot(entry.name)
-                end)
-                assignBtn:SetPoint("RIGHT", xBtn, "LEFT", -4, 0)
-                assignBtn:SetEnabled(not ci.rollState.active)
-            end
-        elseif entry.eligible then
-            local assignBtn = MakeButton(row, "Assign", 80, 20, function()
-                GL.Loot.AssignLoot(entry.name)
-            end)
-            assignBtn:SetPoint("RIGHT", row, "RIGHT", 0, 0)
-            assignBtn:SetEnabled(false)
         end
 
         row:Show()
