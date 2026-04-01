@@ -289,7 +289,9 @@ function GL.StartRaid(tier)
     GuildLootDB.settings.isMasterLooter = true
     GL.Print("Raid started: " .. raid.tier .. ". " .. #raid.participants .. " players loaded.")
     if GL.Comm and GL.Comm.SendRaidStart then
-        GL.Comm.SendRaidStart(raid.tier, raid.difficulty, raid.id, raid.startedAt, UnitName("player"))
+        local s = GuildLootDB.settings
+        GL.Comm.SendRaidStart(raid.tier, raid.difficulty, raid.id, raid.startedAt, UnitName("player"),
+                              s.minQuality, s.prioSeconds, s.rollSeconds)
     end
     if GL.UI and GL.UI.Refresh then GL.UI.Refresh() end
     if GL.UI and GL.UI.ShowTab then GL.UI.ShowTab(GL.UI.TAB_LOOT) end
@@ -338,7 +340,7 @@ end
 -- Observer-Handler (empfangen Comm-Nachrichten vom ML)
 -- ============================================================
 
-function GL.OnCommRaidStart(tier, difficulty, id, startedAt, sender, mlName)
+function GL.OnCommRaidStart(tier, difficulty, id, startedAt, sender, mlName, minQuality, prioSeconds, rollSeconds)
     if GL.IsMasterLooter() then
         -- Jemand anderes sendet RAID_START → er ist der aktuelle ML, wir wurden abgelöst
         GuildLootDB.settings.isMasterLooter = false
@@ -379,6 +381,17 @@ function GL.OnCommRaidStart(tier, difficulty, id, startedAt, sender, mlName)
         table.remove(history, histIdx)
     end
     GL.LoadRaidRoster()
+    -- Settings des ML übernehmen (nur gültige Werte)
+    local s = GuildLootDB.settings
+    if minQuality and (minQuality == 3 or minQuality == 4 or minQuality == 5) then
+        s.minQuality = minQuality
+    end
+    if prioSeconds and prioSeconds >= 5 and prioSeconds <= 120 then
+        s.prioSeconds = prioSeconds
+    end
+    if rollSeconds and rollSeconds >= 5 and rollSeconds <= 120 then
+        s.rollSeconds = rollSeconds
+    end
     if histIdx then
         GL.Print("Raid resumed from ML: " .. (tier or "?") .. " (" .. #restoredLog .. " loot entries restored).")
     else
@@ -391,7 +404,9 @@ function GL.OnCommRaidQuery(sender)
     if not GL.IsMasterLooter() then return end
     local raid = GuildLootDB.currentRaid
     if not raid.active then return end
-    GL.Comm.SendRaidStart(raid.tier, raid.difficulty, raid.id, raid.startedAt, UnitName("player"))
+    local s = GuildLootDB.settings
+    GL.Comm.SendRaidStart(raid.tier, raid.difficulty, raid.id, raid.startedAt, UnitName("player"),
+                          s.minQuality, s.prioSeconds, s.rollSeconds)
 end
 
 function GL.OnCommRaidEnd(raidID)
@@ -524,7 +539,9 @@ function GL.ResumeRaid(idx)
     GL.Print("Raid resumed: " .. (raid.tier ~= "" and raid.tier or "?")
              .. " (" .. #raid.participants .. " players, " .. #raid.lootLog .. " loot entries restored).")
     if GL.Comm and GL.Comm.SendRaidStart then
-        GL.Comm.SendRaidStart(raid.tier, raid.difficulty, raid.id, raid.startedAt, UnitName("player"))
+        local s = GuildLootDB.settings
+        GL.Comm.SendRaidStart(raid.tier, raid.difficulty, raid.id, raid.startedAt, UnitName("player"),
+                              s.minQuality, s.prioSeconds, s.rollSeconds)
     end
     if GL.UI and GL.UI.Refresh then GL.UI.Refresh() end
     if GL.UI and GL.UI.ShowTab then GL.UI.ShowTab(GL.UI.TAB_LOOT) end
@@ -646,7 +663,9 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         -- Late-Joiner: aktiven Raid-State an Gruppe broadcasten (ML-Push)
         local _raid = GuildLootDB.currentRaid
         if _raid.active and GL.IsMasterLooter() and GL.Comm and GL.Comm.SendRaidStart then
-            GL.Comm.SendRaidStart(_raid.tier, _raid.difficulty, _raid.id, _raid.startedAt, UnitName("player"))
+            local s = GuildLootDB.settings
+            GL.Comm.SendRaidStart(_raid.tier, _raid.difficulty, _raid.id, _raid.startedAt, UnitName("player"),
+                                  s.minQuality, s.prioSeconds, s.rollSeconds)
         end
         -- Observer ohne aktiven Raid → aktiv nach Raid fragen (max. 1x alle 5s)
         if not GL.IsMasterLooter() and not _raid.active then
