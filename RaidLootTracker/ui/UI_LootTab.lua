@@ -546,14 +546,27 @@ function UI.RefreshCandidates()
 
         -- X-Button: nur für ML sichtbar, löscht diesen Prio-Eintrag
         if isML then
-            local removeBtn = CreateFrame("Button", nil, row, "UIPanelCloseButton")
+            local removeBtn = CreateFrame("Button", nil, row)
             removeBtn:SetSize(18, 18)
-            removeBtn:SetPoint("RIGHT", row, "RIGHT", -2, 0)
+            removeBtn:SetPoint("RIGHT", row, "RIGHT", -4, 0)
+            removeBtn:SetNormalFontObject("GameFontNormalSmall")
+            local tex = removeBtn:CreateTexture(nil, "BACKGROUND")
+            tex:SetAllPoints()
+            tex:SetColorTexture(0.6, 0.1, 0.1, 0.8)
+            local label = removeBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+            label:SetAllPoints()
+            label:SetText("|cffff4444X|r")
             local entryName = entry.name  -- closure
             removeBtn:SetScript("OnClick", function()
                 GL.Loot.GetCurrentItem().candidates[entryName] = nil
                 UI.RefreshCandidates()
                 UI.RefreshRollResults()
+            end)
+            removeBtn:SetScript("OnEnter", function(self)
+                tex:SetColorTexture(0.8, 0.2, 0.2, 1)
+            end)
+            removeBtn:SetScript("OnLeave", function(self)
+                tex:SetColorTexture(0.6, 0.1, 0.1, 0.8)
             end)
         end
 
