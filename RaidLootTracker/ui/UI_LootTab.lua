@@ -505,6 +505,9 @@ function UI.RefreshRollResults()
     local ci      = GL.Loot.GetCurrentItem()
     local content = UI.lootPanel and UI.lootPanel.resultContent
     if not content then return end
+    -- Content-Breite dynamisch setzen (wie RefreshSessionLoot)
+    local rw = UI.lootPanel.resultScroll and UI.lootPanel.resultScroll:GetWidth() or 0
+    if rw > 10 then content:SetWidth(rw) end
     for _, r in ipairs(rollResultRows) do r:Hide() end
     rollResultRows = {}
 
