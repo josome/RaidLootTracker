@@ -57,6 +57,69 @@ function GL.Test.AddPendingItem()
     if GL.UI and GL.UI.RefreshLootTab then GL.UI.RefreshLootTab() end
 end
 
+-- Simuliert die Prio-Sammelphase mit Fake-Kandidaten, damit der X-Button (Prio löschen)
+-- ohne echten Raid getestet werden kann.
+function GL.Test.SimulatePrio()
+    if not GuildLootDB.currentRaid.active then
+        GL.StartRaid("Test-Tier")
+    end
+
+    local chosen = nil
+    for bag = 0, 4 do
+        for slot = 1, C_Container.GetContainerNumSlots(bag) do
+            local link = C_Container.GetContainerItemLink(bag, slot)
+            if link then
+                local name, _, rarity, _, _, _, _, _, equipLoc = GetItemInfo(link)
+                local isEquip = equipLoc and equipLoc ~= "" and equipLoc ~= "INVTYPE_NON_EQUIP_IGNORE"
+                if rarity and rarity >= 4 and isEquip then
+                    chosen = { link = link, name = name, equipLoc = equipLoc, quality = rarity }
+                    break
+                end
+            end
+        end
+        if chosen then break end
+    end
+
+    if not chosen then
+        GL.Print("SimulatePrio: No epic item found in inventory.")
+        return
+    end
+
+    local itemID  = tonumber(chosen.link:match("item:(%d+)"))
+    local _, _, _, _, _, _, _, _, equipLoc = GetItemInfo(chosen.link)
+    local category = GL.GetItemCategory(itemID, equipLoc or chosen.equipLoc, chosen.quality)
+
+    GL.Loot.ClearCurrentItem()
+
+    local realm = GetRealmName() or "Realm"
+    local ci = GL.Loot.GetCurrentItem()
+    ci.link      = chosen.link
+    ci.name      = chosen.name
+    ci.itemID    = itemID
+    ci.quality   = chosen.quality
+    ci.category  = category
+    -- Prio-Phase aktiv, kein laufender Roll
+    ci.prioState = { active = true, timeLeft = 30, timer = nil }
+    ci.rollState = { active = false, players = {}, results = {}, timer = nil, timeLeft = 0 }
+    ci.candidates = {
+        ["TestPlayer1-" .. realm] = { prio = 1 },
+        ["TestPlayer2-" .. realm] = { prio = 2 },
+        ["TestPlayer3-" .. realm] = { prio = 2 },
+        ["TestPlayer4-" .. realm] = { prio = 3 },
+    }
+
+    local participants = GuildLootDB.currentRaid.participants
+    for name in pairs(ci.candidates) do
+        local found = false
+        for _, p in ipairs(participants) do if p == name then found = true; break end end
+        if not found then table.insert(participants, name) end
+    end
+
+    if GL.UI and GL.UI.RefreshLootTab     then GL.UI.RefreshLootTab()     end
+    if GL.UI and GL.UI.RefreshCandidates  then GL.UI.RefreshCandidates()  end
+    GL.Print("Prio simulation active — X-Button pro Kandidat sichtbar (nur als ML).")
+end
+
 -- Simuliert einen laufenden Roll-Vorgang mit Fake-Kandidaten verschiedener Prios,
 -- damit die Results-Sektion ohne echten Raid getestet werden kann.
 function GL.Test.SimulateRoll()

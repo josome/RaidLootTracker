@@ -780,6 +780,13 @@ SlashCmdList["RAIDLOOTTRACKER"] = function(input)
             GL.Print("Test mode not loaded.")
         end
 
+    elseif cmd == "testprio" then
+        if GL.Test and GL.Test.SimulatePrio then
+            GL.Test.SimulatePrio()
+        else
+            GL.Print("Test mode not loaded.")
+        end
+
     elseif cmd == "testroll" then
         if GL.Test and GL.Test.SimulateRoll then
             GL.Test.SimulateRoll()
@@ -840,6 +847,6 @@ SlashCmdList["RAIDLOOTTRACKER"] = function(input)
         if GL.UI and GL.UI.Refresh then GL.UI.Refresh() end
 
     else
-        GL.Print("Commands: /rlt | /rlt start [tier] | /rlt history [name] | /rlt reset | /rlt ml | /rlt cleanup | /rlt test | /rlt testroll | /rlt testentry")
+        GL.Print("Commands: /rlt | /rlt start [tier] | /rlt history [name] | /rlt reset | /rlt ml | /rlt cleanup | /rlt test | /rlt testprio | /rlt testroll | /rlt testentry")
     end
 end
