@@ -233,7 +233,7 @@ function UI.BuildLootPanel(parent)
     local candScroll = CreateFrame("ScrollFrame", "GuildLootCandScroll", main, "UIPanelScrollFrameTemplate")
     candScroll:SetPoint("TOPLEFT",  candLabel, "BOTTOMLEFT", 0, -2)
     candScroll:SetPoint("TOPRIGHT", main,      "TOPRIGHT",  -22, 0)
-    candScroll:SetHeight(90)
+    candScroll:SetHeight(1)   -- Startet mit Höhe 1; wird in RefreshCandidates dynamisch gesetzt
     local candContent = CreateFrame("Frame", nil, candScroll)
     candContent:SetSize(candScroll:GetWidth(), 1)
     candScroll:SetScrollChild(candContent)
@@ -244,10 +244,11 @@ function UI.BuildLootPanel(parent)
     candScroll:Hide()
 
     -- Buttons: Roll-Aktion + Countdown
+    -- Ankern an candScroll: wenn cand-Bereich sichtbar, rutscht der Button nach unten
     startRollBtn = MakeButton(main, "Release Roll", 130, 24, function()
         GL.Loot.StartRoll()
     end)
-    startRollBtn:SetPoint("TOPLEFT", activeItemCategoryLabel, "BOTTOMLEFT", 0, -6)
+    startRollBtn:SetPoint("TOPLEFT", candScroll, "BOTTOMLEFT", 0, -6)
 
     countdownLabel = main:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     countdownLabel:SetPoint("LEFT", startRollBtn, "RIGHT", 8, 0)
@@ -528,10 +529,20 @@ function UI.RefreshCandidates()
     end
     table.sort(sorted, function(a, b) return a.prio < b.prio end)
 
-    -- Kandidaten-Bereich einblenden wenn Einträge vorhanden, sonst verstecken
-    local hasCands = #sorted > 0
-    if panel.candScroll then panel.candScroll:SetShown(hasCands) end
-    if panel.candLabel  then panel.candLabel:SetShown(hasCands)  end
+    -- Kandidaten-Bereich nur während Prio-Phase einblenden (nicht während/nach dem Roll)
+    local prioActive = ci.prioState and ci.prioState.active
+    local showCand   = prioActive and #sorted > 0
+    if panel.candLabel  then panel.candLabel:SetShown(showCand) end
+    if panel.candScroll then
+        if showCand then
+            local h = math.min(90, #sorted * 20 + 4)
+            panel.candScroll:SetHeight(h)
+            panel.candScroll:Show()
+        else
+            panel.candScroll:SetHeight(1)
+            panel.candScroll:Hide()
+        end
+    end
 
     local isML = GL.IsMasterLooter()
     local yOff = 0
