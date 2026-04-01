@@ -549,7 +549,6 @@ function UI.RefreshCandidates()
         end
     end
 
-    local isML = GL.IsMasterLooter()
     local yOff = 0
     for _, entry in ipairs(sorted) do
         local row = CreateFrame("Frame", nil, content)
@@ -565,32 +564,6 @@ function UI.RefreshCandidates()
         local prioText = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
         prioText:SetPoint("LEFT", nameText, "RIGHT", 8, 0)
         prioText:SetText("Prio: |cffffcc00" .. entry.prio .. "|r")
-
-        -- X-Button: nur für ML sichtbar, löscht diesen Prio-Eintrag
-        if isML then
-            local removeBtn = CreateFrame("Button", nil, row)
-            removeBtn:SetSize(18, 18)
-            removeBtn:SetPoint("RIGHT", row, "RIGHT", -4, 0)
-            removeBtn:SetNormalFontObject("GameFontNormalSmall")
-            local tex = removeBtn:CreateTexture(nil, "BACKGROUND")
-            tex:SetAllPoints()
-            tex:SetColorTexture(0.6, 0.1, 0.1, 0.8)
-            local label = removeBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-            label:SetAllPoints()
-            label:SetText("|cffff4444X|r")
-            local entryName = entry.name  -- closure
-            removeBtn:SetScript("OnClick", function()
-                GL.Loot.GetCurrentItem().candidates[entryName] = nil
-                UI.RefreshCandidates()
-                UI.RefreshRollResults()
-            end)
-            removeBtn:SetScript("OnEnter", function(self)
-                tex:SetColorTexture(0.8, 0.2, 0.2, 1)
-            end)
-            removeBtn:SetScript("OnLeave", function(self)
-                tex:SetColorTexture(0.6, 0.1, 0.1, 0.8)
-            end)
-        end
 
         row:Show()
         table.insert(candidateRows, row)
@@ -616,6 +589,7 @@ function UI.RefreshRollResults()
         local short = GL.ShortName(name)
         table.insert(sorted, {
             name     = short,
+            fullName = name,   -- realm-qualifizierter Key für candidates-Tabelle
             prio     = data.prio,
             roll     = ci.rollState.results[short],
             eligible = (data.prio == bestPrio),
@@ -675,12 +649,39 @@ function UI.RefreshRollResults()
             end
         end
 
-        if entry.eligible then
+        if GL.IsMasterLooter() then
+            -- X-Button: Prio-Eintrag löschen (immer rechts, für alle Kandidaten)
+            local xBtn = CreateFrame("Button", nil, row)
+            xBtn:SetSize(18, 18)
+            xBtn:SetPoint("RIGHT", row, "RIGHT", 0, 0)
+            local xTex = xBtn:CreateTexture(nil, "BACKGROUND")
+            xTex:SetAllPoints()
+            xTex:SetColorTexture(0.6, 0.1, 0.1, 0.8)
+            local xLabel = xBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+            xLabel:SetAllPoints()
+            xLabel:SetText("|cffff4444X|r")
+            local fullName = entry.fullName
+            xBtn:SetScript("OnClick", function()
+                GL.Loot.GetCurrentItem().candidates[fullName] = nil
+                UI.RefreshCandidates()
+                UI.RefreshRollResults()
+            end)
+            xBtn:SetScript("OnEnter", function() xTex:SetColorTexture(0.8, 0.2, 0.2, 1) end)
+            xBtn:SetScript("OnLeave", function() xTex:SetColorTexture(0.6, 0.1, 0.1, 0.8) end)
+
+            if entry.eligible then
+                local assignBtn = MakeButton(row, "Assign", 80, 20, function()
+                    GL.Loot.AssignLoot(entry.name)
+                end)
+                assignBtn:SetPoint("RIGHT", xBtn, "LEFT", -4, 0)
+                assignBtn:SetEnabled(not ci.rollState.active)
+            end
+        elseif entry.eligible then
             local assignBtn = MakeButton(row, "Assign", 80, 20, function()
                 GL.Loot.AssignLoot(entry.name)
             end)
             assignBtn:SetPoint("RIGHT", row, "RIGHT", 0, 0)
-            assignBtn:SetEnabled(GL.IsMasterLooter() and not ci.rollState.active)
+            assignBtn:SetEnabled(false)
         end
 
         row:Show()
