@@ -627,6 +627,15 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             end
         end
         if GL.UI and GL.UI.Init then GL.UI.Init() end
+        -- Delayed RAID_QUERY: Gruppe/Raid-API ist bei Login noch nicht sofort bereit.
+        -- C_Timer stellt sicher, dass GROUP_ROSTER_UPDATE schon gefeuert hat.
+        C_Timer.After(3, function()
+            local r = GuildLootDB.currentRaid
+            if not GL.IsMasterLooter() and not r.active then
+                GL._lastRaidQuery = time()
+                if GL.Comm and GL.Comm.SendRaidQuery then GL.Comm.SendRaidQuery() end
+            end
+        end)
 
     elseif event == "PLAYER_LOGOUT" then
         GuildLootDB.lastLogout = time()
