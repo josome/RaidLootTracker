@@ -527,6 +527,7 @@ function UI.RefreshCandidates()
     end
     table.sort(sorted, function(a, b) return a.prio < b.prio end)
 
+    local isML = GL.IsMasterLooter()
     local yOff = 0
     for _, entry in ipairs(sorted) do
         local row = CreateFrame("Frame", nil, content)
@@ -542,6 +543,19 @@ function UI.RefreshCandidates()
         local prioText = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
         prioText:SetPoint("LEFT", nameText, "RIGHT", 8, 0)
         prioText:SetText("Prio: |cffffcc00" .. entry.prio .. "|r")
+
+        -- X-Button: nur für ML sichtbar, löscht diesen Prio-Eintrag
+        if isML then
+            local removeBtn = CreateFrame("Button", nil, row, "UIPanelCloseButton")
+            removeBtn:SetSize(18, 18)
+            removeBtn:SetPoint("RIGHT", row, "RIGHT", -2, 0)
+            local entryName = entry.name  -- closure
+            removeBtn:SetScript("OnClick", function()
+                GL.Loot.GetCurrentItem().candidates[entryName] = nil
+                UI.RefreshCandidates()
+                UI.RefreshRollResults()
+            end)
+        end
 
         row:Show()
         table.insert(candidateRows, row)
