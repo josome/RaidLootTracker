@@ -244,11 +244,11 @@ function UI.BuildLootPanel(parent)
     candScroll:Hide()
 
     -- Buttons: Roll-Aktion + Countdown
-    -- Ankern an candScroll: wenn cand-Bereich sichtbar, rutscht der Button nach unten
+    -- Ankern an activeItemCategoryLabel; wird in RefreshCandidates dynamisch umgehängt
     startRollBtn = MakeButton(main, "Release Roll", 130, 24, function()
         GL.Loot.StartRoll()
     end)
-    startRollBtn:SetPoint("TOPLEFT", candScroll, "BOTTOMLEFT", 0, -6)
+    startRollBtn:SetPoint("TOPLEFT", activeItemCategoryLabel, "BOTTOMLEFT", 0, -6)
 
     countdownLabel = main:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     countdownLabel:SetPoint("LEFT", startRollBtn, "RIGHT", 8, 0)
@@ -529,18 +529,23 @@ function UI.RefreshCandidates()
     end
     table.sort(sorted, function(a, b) return a.prio < b.prio end)
 
-    -- Kandidaten-Bereich nur während Prio-Phase einblenden (nicht während/nach dem Roll)
-    local prioActive = ci.prioState and ci.prioState.active
-    local showCand   = prioActive and #sorted > 0
+    -- Kandidaten-Bereich zeigen wenn Kandidaten vorhanden (Prio-, Roll- und Ergebnis-Phase)
+    local showCand = #sorted > 0
     if panel.candLabel  then panel.candLabel:SetShown(showCand) end
     if panel.candScroll then
         if showCand then
             local h = math.min(90, #sorted * 20 + 4)
             panel.candScroll:SetHeight(h)
             panel.candScroll:Show()
+            -- startRollBtn unter candScroll hängen
+            startRollBtn:ClearAllPoints()
+            startRollBtn:SetPoint("TOPLEFT", panel.candScroll, "BOTTOMLEFT", 0, -6)
         else
             panel.candScroll:SetHeight(1)
             panel.candScroll:Hide()
+            -- startRollBtn direkt unter Item-Info
+            startRollBtn:ClearAllPoints()
+            startRollBtn:SetPoint("TOPLEFT", activeItemCategoryLabel, "BOTTOMLEFT", 0, -6)
         end
     end
 
