@@ -225,26 +225,7 @@ function UI.BuildLootPanel(parent)
     trashItemBtn:SetPoint("RIGHT", resetItemBtn, "LEFT", -4, 0)
     trashItemBtn:SetPoint("TOP",   divA, "BOTTOM", 0, -2)
 
-    -- Kandidaten
-    local candLabel = main:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    candLabel:SetPoint("TOPLEFT", activeItemCategoryLabel, "BOTTOMLEFT", 0, -6)
-    candLabel:SetText("|cffffcc00Prio Submissions:|r")
-
-    local candScroll = CreateFrame("ScrollFrame", "GuildLootCandScroll", main, "UIPanelScrollFrameTemplate")
-    candScroll:SetPoint("TOPLEFT",  candLabel, "BOTTOMLEFT", 0, -2)
-    candScroll:SetPoint("TOPRIGHT", main,      "TOPRIGHT",  -22, 0)
-    candScroll:SetHeight(1)   -- Startet mit Höhe 1; wird in RefreshCandidates dynamisch gesetzt
-    local candContent = CreateFrame("Frame", nil, candScroll)
-    candContent:SetSize(candScroll:GetWidth(), 1)
-    candScroll:SetScrollChild(candContent)
-    panel.candContent = candContent
-    panel.candLabel   = candLabel
-    panel.candScroll  = candScroll
-    candLabel:Hide()
-    candScroll:Hide()
-
     -- Buttons: Roll-Aktion + Countdown
-    -- Ankern an activeItemCategoryLabel; wird in RefreshCandidates dynamisch umgehängt
     startRollBtn = MakeButton(main, "Release Roll", 130, 24, function()
         GL.Loot.StartRoll()
     end)
@@ -516,60 +497,8 @@ function UI.RefreshLootTab()
 end
 
 function UI.RefreshCandidates()
-    local ci      = GL.Loot.GetCurrentItem()
-    local panel   = UI.lootPanel
-    local content = panel and panel.candContent
-    if not content then return end
-    for _, r in ipairs(candidateRows) do r:Hide() end
-    candidateRows = {}
-
-    local sorted = {}
-    for name, data in pairs(ci.candidates) do
-        table.insert(sorted, { name = name, prio = data.prio })
-    end
-    table.sort(sorted, function(a, b) return a.prio < b.prio end)
-
-    -- Kandidaten-Bereich zeigen wenn Kandidaten vorhanden (Prio-, Roll- und Ergebnis-Phase)
-    local showCand = #sorted > 0
-    if panel.candLabel  then panel.candLabel:SetShown(showCand) end
-    if panel.candScroll then
-        if showCand then
-            local h = math.min(90, #sorted * 20 + 4)
-            panel.candScroll:SetHeight(h)
-            panel.candScroll:Show()
-            -- startRollBtn unter candScroll hängen
-            startRollBtn:ClearAllPoints()
-            startRollBtn:SetPoint("TOPLEFT", panel.candScroll, "BOTTOMLEFT", 0, -6)
-        else
-            panel.candScroll:SetHeight(1)
-            panel.candScroll:Hide()
-            -- startRollBtn direkt unter Item-Info
-            startRollBtn:ClearAllPoints()
-            startRollBtn:SetPoint("TOPLEFT", activeItemCategoryLabel, "BOTTOMLEFT", 0, -6)
-        end
-    end
-
-    local yOff = 0
-    for _, entry in ipairs(sorted) do
-        local row = CreateFrame("Frame", nil, content)
-        row:SetPoint("TOPLEFT", content, "TOPLEFT", 0, yOff)
-        row:SetPoint("RIGHT",   content, "RIGHT",    0, 0)
-        row:SetHeight(20)
-
-        local nameText = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        nameText:SetPoint("LEFT", row, "LEFT", 4, 0)
-        nameText:SetText(GL.ShortName(entry.name))
-        nameText:SetWidth(180)
-
-        local prioText = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        prioText:SetPoint("LEFT", nameText, "RIGHT", 8, 0)
-        prioText:SetText("Prio: |cffffcc00" .. entry.prio .. "|r")
-
-        row:Show()
-        table.insert(candidateRows, row)
-        yOff = yOff - 20
-    end
-    content:SetHeight(math.max(1, -yOff))
+    -- Prio Submissions werden nicht mehr separat angezeigt.
+    -- Alle Kandidaten inkl. X-Button sind in RefreshRollResults sichtbar.
 end
 
 function UI.RefreshRollResults()
@@ -649,26 +578,21 @@ function UI.RefreshRollResults()
             end
         end
 
-        if GL.IsMasterLooter() then
-            -- X-Button: Prio-Eintrag löschen (immer rechts, für alle Kandidaten)
-            local xBtn = CreateFrame("Button", nil, row)
+        local isML = GL.IsMasterLooter()
+
+        -- X-Button ganz rechts (nur ML), WoW-Style wie Session-Loot
+        if isML then
+            local fullName = entry.fullName
+            local xBtn = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
             xBtn:SetSize(18, 18)
             xBtn:SetPoint("RIGHT", row, "RIGHT", 0, 0)
-            local xTex = xBtn:CreateTexture(nil, "BACKGROUND")
-            xTex:SetAllPoints()
-            xTex:SetColorTexture(0.6, 0.1, 0.1, 0.8)
-            local xLabel = xBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-            xLabel:SetAllPoints()
-            xLabel:SetText("|cffff4444X|r")
-            local fullName = entry.fullName
+            xBtn:SetText("×")
             xBtn:SetScript("OnClick", function()
                 GL.Loot.GetCurrentItem().candidates[fullName] = nil
-                UI.RefreshCandidates()
                 UI.RefreshRollResults()
             end)
-            xBtn:SetScript("OnEnter", function() xTex:SetColorTexture(0.8, 0.2, 0.2, 1) end)
-            xBtn:SetScript("OnLeave", function() xTex:SetColorTexture(0.6, 0.1, 0.1, 0.8) end)
 
+            -- Assign-Button links vom X (nur eligible)
             if entry.eligible then
                 local assignBtn = MakeButton(row, "Assign", 80, 20, function()
                     GL.Loot.AssignLoot(entry.name)
