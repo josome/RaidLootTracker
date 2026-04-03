@@ -104,13 +104,13 @@ end
 -- Chat-Parsing
 -- ============================================================
 
---- Extrahiert die führende Prio-Zahl (1–4) aus einer Chat-Nachricht.
---- Akzeptiert: "1", "2", "1up", "1bis", "2 UP" etc.
+--- Extrahiert die führende Prio-Zahl (1, 2 oder 4) aus einer Chat-Nachricht.
+--- Akzeptiert: "1", "2", "4", "1bis", "2os", "4tmog" etc.
 --- @param message string
---- @return number|nil  1–4 oder nil
+--- @return number|nil  1, 2, 4 oder nil
 function GL.ParseLootInput(message)
     if not message then return nil end
-    local digit = message:match("^%s*([1-4])")
+    local digit = message:match("^%s*([124])")
     if digit then
         return tonumber(digit)
     end
@@ -269,7 +269,7 @@ end
 function GL.ExportCSV(raidData)
     local raid = raidData or GuildLootDB.currentRaid
 
-    local PRIO_LABEL = { [1]="BIS", [2]="Upgrade", [3]="OS", [4]="Fun" }
+    local PRIO_LABEL = { [1]="BIS", [2]="OS", [4]="Transmog" }
     local CAT_LABEL  = { weapons="Weapon", trinket="Trinket", setItems="Set", other="Other" }
 
     local function esc(s)

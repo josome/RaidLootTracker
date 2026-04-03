@@ -214,7 +214,7 @@ function Loot.ActivateItem(link, name, iLevel, equipLoc, quality)
 
     -- Prio-Sammel-Timer starten
     local prioSecs = PRIO_SECONDS()
-    GL.PostRaidWarn("Loot: " .. link .. " -- Post your prio (" .. prioSecs .. " sec): 1=BIS, 2=Upgrade, 3=OS, 4=Fun")
+    GL.PostRaidWarn("Loot: " .. link .. " -- Post your prio (" .. prioSecs .. " sec): 1=BIS, 2=OS, 4=Transmog")
     currentItem.prioState.active   = true
     currentItem.prioState.timeLeft = prioSecs
     currentItem.prioState.timer = C_Timer.NewTicker(1, function()

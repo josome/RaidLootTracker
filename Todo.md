@@ -24,16 +24,19 @@
   - Optional: Limit auf letzte N Raids oder letzte X Items
 
 
-- [ ]Neu **Falls jemand ausversehen eine prio geschrieben hat soll der ML die weg X en können**
-- [ ]Neu **Die Settings des Raids sollten mit übertragen werden, relevant sind hier Loot Seltenheit,Timers **
-- [ ]Neu **Bei lootverteilung mit prio 4 sollen die bervorzugt werden die das item tragen können**
-        Platte aber nur platte und nicht auch stoff, leder und schwere rüstung
-
-- [ ]Neu **Abgleich Discord Raid anmeldungen mit eingeladenen personen**
+- [x] **Falls jemand ausversehen eine prio geschrieben hat soll der ML die weg X en können**
+- [x] **Die Settings des Raids sollten mit übertragen werden, relevant sind hier Loot Seltenheit,Timers **
+- [ ] **Bei lootverteilung mit prio 4 sollen die bervorzugt werden die das item tragen können**
+        Platte aber nur platte und nicht auch stoff, leder und schwere rüstungso 
+- [ ] **wenn zwei mal das identische Item droppt sollten beide (oder mehr) Items mit einem gang verrollt werden können
+- ~~**Abgleich Discord Raid anmeldungen mit eingeladenen personen**~~ — verworfen (Discord-Namen ≠ WoW-Namen)
+- [x] Prios ändern auf 1 BIS 2 OS 4 Transmog
+- [] NEW **Wenn mehrere das addon haben, wenn ml nen raid startet, könnte es evtl ne notification bei den anderen geben die gesyncd sind/oder das Fenster öffnet sich**
 
 ## Bugs
-- [ ] Neu Bug, ein client der später beitritt bekomme die Raiddaten nicht
-- [ ] Omni Settoken werden nicht berücksichtigt
+- [x] ein client der später beitritt bekomme die Raiddaten nicht
+- [x] Omni Settoken werden nicht berücksichtigt
+- [ ] Soll in dungeons und tiefen nicht funktionieren
 ---
 
 

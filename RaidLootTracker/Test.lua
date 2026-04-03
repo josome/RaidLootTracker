@@ -105,7 +105,7 @@ function GL.Test.SimulatePrio()
         ["TestPlayer1-" .. realm] = { prio = 1 },
         ["TestPlayer2-" .. realm] = { prio = 2 },
         ["TestPlayer3-" .. realm] = { prio = 2 },
-        ["TestPlayer4-" .. realm] = { prio = 3 },
+        ["TestPlayer4-" .. realm] = { prio = 4 },
     }
 
     local participants = GuildLootDB.currentRaid.participants
@@ -172,7 +172,7 @@ function GL.Test.SimulateRoll()
         ["TestPlayer4-" .. realm] = { prio = 1 },
         ["TestPlayer5-" .. realm] = { prio = 2 },
         ["TestPlayer6-" .. realm] = { prio = 2 },
-        ["TestPlayer7-" .. realm] = { prio = 3 },
+        ["TestPlayer7-" .. realm] = { prio = 4 },
     }
     ci.rollState.players = {
         TestPlayer1 = true,
