@@ -801,6 +801,13 @@ SlashCmdList["RAIDLOOTTRACKER"] = function(input)
             GL.Print("Test mode not loaded.")
         end
 
+    elseif cmd == "testmulti" then
+        if GL.Test and GL.Test.SimulateMultiRoll then
+            GL.Test.SimulateMultiRoll(arg ~= "" and arg or nil)
+        else
+            GL.Print("Test mode not loaded.")
+        end
+
     elseif cmd == "simraidstart" then
         GL.OnCommRaidStart("Battle of Dazar'alor (Test)", "H", "test1234", time(), "FakeML")
         GL.Print("Simulated RAID_START from FakeML.")

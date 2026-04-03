@@ -557,7 +557,8 @@ end
 
 local difficultyPopup
 
-function UI.ShowDifficultyPopup(recipientShortName)
+-- callback (optional): function(diff) — wird statt AssignLootConfirm aufgerufen (z.B. für AssignAllWinners)
+function UI.ShowDifficultyPopup(recipientShortName, callback)
     if difficultyPopup then difficultyPopup:Hide() end
 
     local popup = CreateFrame("Frame", "GuildLootDiffPopup", UIParent, "BackdropTemplate")
@@ -574,7 +575,11 @@ function UI.ShowDifficultyPopup(recipientShortName)
     local function MakeDiffBtn(text, diff, xPos)
         local btn = MakeButton(popup, text, 60, 24, function()
             popup:Hide()
-            GL.Loot.AssignLootConfirm(recipientShortName, diff)
+            if callback then
+                callback(diff)
+            else
+                GL.Loot.AssignLootConfirm(recipientShortName, diff)
+            end
         end)
         btn:SetPoint("BOTTOM", popup, "BOTTOM", xPos, 12)
         return btn

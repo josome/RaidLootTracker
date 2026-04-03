@@ -449,7 +449,8 @@ function UI.RefreshLootTab()
 
     -- Aktives Item
     if ci.link then
-        activeItemLabel:SetText(ci.link)
+        local countPrefix = (ci.count and ci.count > 1) and (ci.count .. "× ") or ""
+        activeItemLabel:SetText(countPrefix .. ci.link)
         local catNames = { weapons="Weapon", trinket="Trinket", setItems="Set/Token", other="Other" }
         activeItemCategoryLabel:SetText("[" .. (catNames[ci.category] or "?") .. "]")
         resetItemBtn:SetEnabled(isML)
@@ -472,17 +473,23 @@ function UI.RefreshLootTab()
     UI.RefreshCountdown(ci.rollState.timeLeft)
 
     -- Roll-Button: Label + Aktion je nach Phase
-    local hasItem    = ci.link ~= nil
-    local prioActive = ci.prioState and ci.prioState.active
-    local rollActive = ci.rollState.active
-    local hasCands   = next(ci.candidates) ~= nil
-    local hasWinner  = ci.winner ~= nil
+    local hasItem         = ci.link ~= nil
+    local prioActive      = ci.prioState and ci.prioState.active
+    local rollActive      = ci.rollState.active
+    local hasCands        = next(ci.candidates) ~= nil
+    local hasWinner       = ci.winner ~= nil
+    local multiWinners    = ci.winners and #ci.winners > 1
+    local hasAnyWinner    = hasWinner or (ci.winners and #ci.winners > 0)
 
     if rollActive then
         startRollBtn:SetText("Evaluate")
         startRollBtn:SetScript("OnClick", function() GL.Loot.FinalizeRoll() end)
         startRollBtn:SetEnabled(isML)
-    elseif hasWinner then
+    elseif multiWinners then
+        startRollBtn:SetText("Assign All (" .. #ci.winners .. ")")
+        startRollBtn:SetScript("OnClick", function() GL.Loot.AssignAllWinners() end)
+        startRollBtn:SetEnabled(isML)
+    elseif hasAnyWinner then
         startRollBtn:SetText("Evaluate")
         startRollBtn:SetEnabled(false)
     elseif prioActive then
@@ -511,6 +518,12 @@ function UI.RefreshRollResults()
     for _, r in ipairs(rollResultRows) do r:Hide() end
     rollResultRows = {}
 
+    -- Gewinner-Set aufbauen (single winner + multi winners)
+    local winnerSet = {}
+    if ci.winner then winnerSet[ci.winner] = true end
+    for _, w in ipairs(ci.winners or {}) do winnerSet[w] = true end
+    local multiWinners = ci.winners and #ci.winners > 1
+
     local bestPrio = nil
     for _, data in pairs(ci.candidates) do
         if bestPrio == nil or data.prio < bestPrio then bestPrio = data.prio end
@@ -524,7 +537,8 @@ function UI.RefreshRollResults()
             fullName = name,   -- realm-qualifizierter Key für candidates-Tabelle
             prio     = data.prio,
             roll     = ci.rollState.results[short],
-            eligible = (data.prio == bestPrio),
+            -- Gewinner gelten immer als eligible (auch bei Cross-Tier-Prio)
+            eligible = (data.prio == bestPrio) or (winnerSet[short] == true),
         })
     end
 
@@ -538,7 +552,7 @@ function UI.RefreshRollResults()
 
     local yOff = 0
     for _, entry in ipairs(sorted) do
-        local isWinner = entry.name == ci.winner
+        local isWinner = winnerSet[entry.name]
         local row = CreateFrame("Frame", nil, content)
         row:SetPoint("TOPLEFT",  content, "TOPLEFT",  0, yOff)
         row:SetPoint("TOPRIGHT", content, "TOPRIGHT", 0, yOff)
@@ -568,9 +582,10 @@ function UI.RefreshRollResults()
             end)
         end
 
-        -- Assign-Button links vom X (eligible Spieler)
+        -- Assign-Button links vom X (eligible Spieler, nur bei Einzel-Gewinner)
+        -- Bei mehreren Gewinnern: "Assign All"-Button im Header übernimmt das
         local assignBtn
-        if entry.eligible then
+        if entry.eligible and not multiWinners then
             assignBtn = MakeButton(row, "Assign", 80, 20, function()
                 GL.Loot.AssignLoot(entry.name)
             end)
@@ -606,7 +621,12 @@ function UI.RefreshRollResults()
         nameText:SetPoint("LEFT", row, "LEFT", 4, 0)
         nameText:SetWidth(130)
         if isWinner then
-            nameText:SetText("|cffffcc00★ " .. entry.name .. "|r")
+            local winIdx = 0
+            for i, w in ipairs(ci.winners or {}) do
+                if w == entry.name then winIdx = i; break end
+            end
+            local prefix = (winIdx > 0) and (winIdx .. ". ★ ") or "★ "
+            nameText:SetText("|cffffcc00" .. prefix .. entry.name .. "|r")
         elseif not entry.eligible then
             nameText:SetText("|cff888888" .. entry.name .. "|r")
         else
