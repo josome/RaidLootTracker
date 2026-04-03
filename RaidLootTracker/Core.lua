@@ -625,6 +625,8 @@ eventFrame:RegisterEvent("CHAT_MSG_INSTANCE_CHAT_LEADER")
 eventFrame:RegisterEvent("CHAT_MSG_SYSTEM")
 eventFrame:RegisterEvent("GET_ITEM_INFO_RECEIVED")
 eventFrame:RegisterEvent("CHAT_MSG_ADDON")
+eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+eventFrame:RegisterEvent("TRADE_SHOW")
 
 eventFrame:SetScript("OnEvent", function(self, event, ...)
     if event == "ADDON_LOADED" then
@@ -657,6 +659,12 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
     elseif event == "PLAYER_LOGOUT" then
         GuildLootDB.lastLogout = time()
         if GL.UI and GL.UI.SavePosition then GL.UI.SavePosition() end
+
+    elseif event == "PLAYER_ENTERING_WORLD" then
+        if GL.UI and GL.UI.OnZoneChanged then GL.UI.OnZoneChanged() end
+
+    elseif event == "TRADE_SHOW" then
+        if GL.Loot and GL.Loot.OnTradeShow then GL.Loot.OnTradeShow() end
 
     elseif event == "RAID_ROSTER_UPDATE" or event == "GROUP_ROSTER_UPDATE" then
         GL.SyncRoster()
@@ -703,25 +711,29 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         end
 
     elseif event == "LOOT_OPENED" then
-        if GL.Loot and GL.Loot.OnLootOpened then GL.Loot.OnLootOpened() end
+        if GL.IsValidZone() and GL.Loot and GL.Loot.OnLootOpened then GL.Loot.OnLootOpened() end
 
     elseif event == "LOOT_SLOT_CHANGED" then
         -- In Group Loot kommen Items asynchron nach LOOT_OPENED
         -- OnLootOpened erneut aufrufen – Dedup verhindert doppelte Einträge
-        if GL.Loot and GL.Loot.OnLootOpened then GL.Loot.OnLootOpened() end
+        if GL.IsValidZone() and GL.Loot and GL.Loot.OnLootOpened then GL.Loot.OnLootOpened() end
 
     elseif event == "LOOT_CLOSED" then
-        if GL.Loot and GL.Loot.OnLootClosed then GL.Loot.OnLootClosed() end
+        if GL.IsValidZone() and GL.Loot and GL.Loot.OnLootClosed then GL.Loot.OnLootClosed() end
 
     elseif event == "CHAT_MSG_RAID" or event == "CHAT_MSG_RAID_LEADER"
         or event == "CHAT_MSG_PARTY" or event == "CHAT_MSG_PARTY_LEADER"
         or event == "CHAT_MSG_INSTANCE_CHAT" or event == "CHAT_MSG_INSTANCE_CHAT_LEADER" then
-        local msg, sender = ...
-        if GL.Loot and GL.Loot.OnChatMessage then GL.Loot.OnChatMessage(msg, sender) end
+        if GL.IsValidZone() then
+            local msg, sender = ...
+            if GL.Loot and GL.Loot.OnChatMessage then GL.Loot.OnChatMessage(msg, sender) end
+        end
 
     elseif event == "CHAT_MSG_SYSTEM" then
-        local msg = ...
-        if GL.Loot and GL.Loot.OnSystemMessage then GL.Loot.OnSystemMessage(msg) end
+        if GL.IsValidZone() then
+            local msg = ...
+            if GL.Loot and GL.Loot.OnSystemMessage then GL.Loot.OnSystemMessage(msg) end
+        end
 
     elseif event == "CHAT_MSG_ADDON" then
         local prefix, msg, _, sender = ...

@@ -32,7 +32,7 @@
 - ~~**Abgleich Discord Raid anmeldungen mit eingeladenen personen**~~ — verworfen (Discord-Namen ≠ WoW-Namen)
 - [x] Prios ändern auf 1 BIS 2 OS 4 Transmog
 - [] NEW **Wenn mehrere das addon haben, wenn ml nen raid startet, könnte es evtl ne notification bei den anderen geben die gesyncd sind/oder das Fenster öffnet sich**
-
+- [] wenn der Spieler der ein Item gewonnen hat den ML anhandelt, kann dann das Item automatisch in den Handel gelegt werden?
 ## Bugs
 - [x] ein client der später beitritt bekomme die Raiddaten nicht
 - [x] Omni Settoken werden nicht berücksichtigt

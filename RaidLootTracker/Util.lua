@@ -100,6 +100,14 @@ function GL.DetectDifficulty()
     return nil
 end
 
+--- Gibt true zurück wenn das Addon in dieser Zone aktiv sein soll.
+--- Aktiv: Open World ("none") oder Raid-Instanz ("raid").
+--- Inaktiv: Dungeon ("party"), Delve/Tiefen ("scenario"), Arena, BG.
+function GL.IsValidZone()
+    local _, instanceType = GetInstanceInfo()
+    return instanceType == "none" or instanceType == "raid"
+end
+
 -- ============================================================
 -- Chat-Parsing
 -- ============================================================

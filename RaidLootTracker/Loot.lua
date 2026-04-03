@@ -10,6 +10,10 @@ local Loot = GL.Loot
 -- Modul-lokaler Zustand (nicht persistent)
 -- ============================================================
 
+-- Offene Handelszuweisungen: { { itemID=N, shortName="X" }, ... }
+-- Wird befüllt wenn ML ein Item zuweist; bei TRADE_SHOW abgeglichen.
+Loot._pendingTrades = {}
+
 -- pendingLoot wird direkt aus GuildLootDB gelesen (überlebt Reloads)
 local function pendingLoot() return GuildLootDB.currentRaid.pendingLoot end
 local function trashedLoot() return GuildLootDB.currentRaid.trashedLoot or {} end
@@ -625,6 +629,11 @@ function Loot.AssignLootConfirm(fullName, diff, clearAfter)
         end
     end
 
+    -- Ausstehenden Handel vormerken (ML legt Item bei nächstem Handel automatisch rein)
+    if GL.IsMasterLooter() then
+        table.insert(Loot._pendingTrades, { itemID = itemID, shortName = GL.ShortName(fullName) })
+    end
+
     -- Observer informieren (fullName ist bereits realm-qualifiziert)
     if GL.Comm then GL.Comm.SendAssign(fullName, diff, link, category, currentItem.quality) end
 
@@ -691,6 +700,61 @@ function Loot.ClearCurrentItem()
     currentItem.winners    = {}
     currentItem._tieReRoll = nil
     pendingActivation      = nil
+end
+
+-- Wird bei TRADE_SHOW aufgerufen: legt alle zugewiesenen Items automatisch in den Handel,
+-- wenn der Handelspartner ein bekannter Gewinner ist (bis zu 6 Slots).
+function Loot.OnTradeShow()
+    if not GL.IsMasterLooter() then return end
+    if #Loot._pendingTrades == 0 then return end
+
+    -- Handelspartner-Name aus dem Trade-Frame lesen
+    local recipientFrame = TradeFrameRecipientNameText
+    if not recipientFrame then return end
+    local partnerName = GL.ShortName(recipientFrame:GetText() or "")
+    if partnerName == "" then return end
+
+    -- Alle offenen Zuweisungen für diesen Spieler sammeln und aus Liste entfernen
+    local itemIDs = {}
+    for i = #Loot._pendingTrades, 1, -1 do
+        local pt = Loot._pendingTrades[i]
+        if pt.shortName == partnerName then
+            table.insert(itemIDs, pt.itemID)
+            table.remove(Loot._pendingTrades, i)
+        end
+    end
+    if #itemIDs == 0 then return end
+
+    -- Nächsten freien Handelsslot finden (Hilfsfunktion)
+    local function nextFreeTradeSlot()
+        for i = 1, 6 do
+            local slotName = GetTradePlayerItemInfo(i)
+            if not slotName then return i end
+        end
+        return nil
+    end
+
+    -- Jedes Item in den Taschen suchen und in einen freien Handelsslot legen
+    for _, itemID in ipairs(itemIDs) do
+        local tradeSlot = nextFreeTradeSlot()
+        if not tradeSlot then break end  -- Alle 6 Slots belegt
+
+        for bag = 0, 4 do
+            local placed = false
+            for slot = 1, C_Container.GetContainerNumSlots(bag) do
+                local info = C_Container.GetContainerItemInfo(bag, slot)
+                if info and info.itemID == itemID then
+                    PickupContainerItem(bag, slot)
+                    if CursorHasItem() then
+                        _G["TradePlayerItem" .. tradeSlot]:Click()
+                    end
+                    placed = true
+                    break
+                end
+            end
+            if placed then break end
+        end
+    end
 end
 
 function Loot.ResetCurrentItem()
