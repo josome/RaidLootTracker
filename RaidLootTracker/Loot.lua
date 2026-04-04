@@ -551,6 +551,7 @@ end
 function Loot.AssignLoot(recipientShortName)
     if not GL.IsMasterLooter() then return end
     if not currentItem.link then return end
+    if not recipientShortName then return end
 
     -- Vollständigen Namen finden
     local fullName = nil
@@ -579,6 +580,7 @@ end
 
 -- clearAfter: ob currentItem nach Zuweisung geleert wird (default true; false bei Multi-Assign)
 function Loot.AssignLootConfirm(fullName, diff, clearAfter)
+    if not fullName then GL.Print("Fehler: kein Spielername bei Zuweisung"); return end
     if clearAfter == nil then clearAfter = true end
     local category = currentItem.category or "other"
     local link     = currentItem.link
