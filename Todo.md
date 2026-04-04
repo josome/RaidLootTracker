@@ -1,5 +1,11 @@
 # RaidLootTracker – Todo
 
+## Konvention
+Erledigte Items werden mit zwei Checkboxen markiert:
+`erledigt: [x] getestet: [ ]`
+
+---
+
 ## Offen
 
 ### Spieler-Tab: Aufklappbare Loot-Historie
@@ -23,22 +29,32 @@
   - Aktueller Raid zuerst, danach ältere Raids chronologisch absteigend
   - Optional: Limit auf letzte N Raids oder letzte X Items
 
+- [ ] **Bei lootverteilung mit prio 4 sollen die bevorzugt werden die das item tragen können**
+        Platte aber nur platte und nicht auch stoff, leder und schwere rüstung
 
-- [x] **Falls jemand ausversehen eine prio geschrieben hat soll der ML die weg X en können**
-- [x] **Die Settings des Raids sollten mit übertragen werden, relevant sind hier Loot Seltenheit,Timers **
-- [ ] **Bei lootverteilung mit prio 4 sollen die bervorzugt werden die das item tragen können**
-        Platte aber nur platte und nicht auch stoff, leder und schwere rüstungso 
-- [ ] **wenn zwei mal das identische Item droppt sollten beide (oder mehr) Items mit einem gang verrollt werden können
-- ~~**Abgleich Discord Raid anmeldungen mit eingeladenen personen**~~ — verworfen (Discord-Namen ≠ WoW-Namen)
-- [x] Prios ändern auf 1 BIS 2 OS 4 Transmog
-- [] NEW **Wenn mehrere das addon haben, wenn ml nen raid startet, könnte es evtl ne notification bei den anderen geben die gesyncd sind/oder das Fenster öffnet sich**
-- [] wenn der Spieler der ein Item gewonnen hat den ML anhandelt, kann dann das Item automatisch in den Handel gelegt werden?
+- [ ] **wenn zwei mal das identische Item droppt sollten beide (oder mehr) Items mit einem gang verrollt werden können**
+
+- [ ] NEW **Wenn mehrere das addon haben, wenn ml nen raid startet, könnte es evtl ne notification bei den anderen geben die gesyncd sind/oder das Fenster öffnet sich**
+
 ## Bugs
-- [x] ein client der später beitritt bekomme die Raiddaten nicht
-- [x] Omni Settoken werden nicht berücksichtigt
-- [ ] Soll in dungeons und tiefen nicht funktionieren
+
+- [ ] (kein offener Bug)
+
 ---
 
+## Erledigt
+
+- erledigt: [x] getestet: [ ] **Prio löschen per X-Button** — ML kann versehentliche Prios entfernen
+- erledigt: [x] getestet: [ ] **Settings-Sync via RAID_START** — minQuality, prioSeconds, rollSeconds werden übertragen
+- erledigt: [x] getestet: [ ] **Prios umbenannt** — 1=BIS, 2=OS, 4=Transmog
+- erledigt: [x] getestet: [ ] **Doppel-Item gleichzeitig rollen** — Multi-Winner Roll mit Assign All
+- erledigt: [x] getestet: [ ] **Bug: Late-Join Sync** — Client der später beitritt bekommt Raiddaten
+- erledigt: [x] getestet: [ ] **Bug: Omni-Token-Erkennung** — Set-Token werden korrekt erkannt
+- erledigt: [x] getestet: [ ] **Bug: Addon in Dungeons & Tiefen deaktiviert** — kein Loot-Tracking, UI versteckt sich
+- erledigt: [x] getestet: [ ] **Auto-Handel** — Item wird automatisch ins Handelsfenster gelegt (auch mehrere Items)
+- ~~**Abgleich Discord Raid anmeldungen mit eingeladenen personen**~~ — verworfen (Discord-Namen ≠ WoW-Namen)
+
+---
 
 ### CSV Roundtrip: Google Sheets ↔ Addon
 
@@ -76,16 +92,3 @@
 - [ ] **JSON-Export-Fenster scrollbar machen**
   Das Export-Textfeld ist aktuell nicht scrollbar, der Inhalt geht über das Fenster hinaus.
   → ScrollFrame um das Export-TextBox ergänzen, oder EditBox mit `SetMultiLine(true)` + Scroll-Wrapper
-
-## Erledigt (diese Session)
-
-- [x] Results-Liste zeigt alle Prio-Spieler sortiert (nicht nur höchste Prio)
-- [x] Test-Simulation `/rlt testroll` mit 7 Spielern (4x Prio1, 2x Prio2, 1x Prio3)
-- [x] ScrollFrame-Bug behoben (UIPanelScrollFrameTemplate braucht benannte Frames)
-- [x] Session Loot Bereich vergrößert (~6 Zeilen)
-- [x] Duplikat-Button "Roll Now" entfernt
-- [x] Fenster-Mindestgröße beim Laden erzwungen (X-Buttons nicht mehr verdeckt)
-- [x] Absturz-Warnung in Raid-Statuszeile
-- [x] pendingLoot wird bei CloseRaid im Snapshot gespeichert
-- [x] pendingLoot wird bei ResumeRaid aus Snapshot wiederhergestellt
-
