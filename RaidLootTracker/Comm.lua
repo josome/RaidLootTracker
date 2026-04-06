@@ -101,8 +101,12 @@ function Comm.OnMessage(msg, sender)
     -- Eigene Nachrichten ignorieren (ML hat bereits lokal verarbeitet)
     -- Ausnahme: commLoopback-Flag für Tests
     -- Sender ist realm-qualifiziert ("Name-Realm"), UnitName nicht → NormalizeName verwenden
-    local myName = (GL.NormalizeName and GL.NormalizeName(UnitName("player") or "")) or UnitName("player") or ""
-    if sender == myName then
+    local myName      = (GL.NormalizeName and GL.NormalizeName(UnitName("player") or "")) or UnitName("player") or ""
+    local myShortName = (GL.ShortName and GL.ShortName(myName)) or myName
+    local senderShort = (GL.ShortName and GL.ShortName(sender or "")) or (sender or "")
+    -- Exakter Vergleich ODER Kurzname-Vergleich als Fallback für Realm-Formatierungs-Unterschiede
+    -- (GetRealmName() kann Leerzeichen enthalten, WoW-Sender-Format nicht immer identisch)
+    if sender == myName or senderShort == myShortName then
         if not (GuildLootDB and GuildLootDB.settings and GuildLootDB.settings.commLoopback) then
             return
         end

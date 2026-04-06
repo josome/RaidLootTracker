@@ -342,6 +342,15 @@ end
 
 function GL.OnCommRaidStart(tier, difficulty, id, startedAt, sender, mlName, minQuality, prioSeconds, rollSeconds)
     if GL.IsMasterLooter() then
+        -- Prüfen ob die Nachricht vom eigenen Client stammt (Self-Filter-Fallback).
+        -- Beide Seiten nutzen NormalizeName → gleiche Formatierung → zuverlässiger Vergleich
+        -- auch wenn WoW-Sender und GetRealmName() unterschiedliche Realm-Schreibweisen liefern.
+        local myNormalName = GL.NormalizeName(UnitName("player") or "") or ""
+        local senderML     = GL.NormalizeName(mlName or "") or ""
+        if senderML == myNormalName then
+            -- Eigene RAID_START-Broadcast empfangen (Self-Filter in Comm hat versagt) → ignorieren
+            return
+        end
         -- Jemand anderes sendet RAID_START → er ist der aktuelle ML, wir wurden abgelöst
         GuildLootDB.settings.isMasterLooter = false
         GL._pendingMLClaim = nil
