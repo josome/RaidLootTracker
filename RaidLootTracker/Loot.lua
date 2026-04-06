@@ -739,27 +739,31 @@ function Loot.OnTradeShow()
         return nil
     end
 
-    -- Jedes Item in den Taschen suchen und in einen freien Handelsslot legen
+    -- Jedes Item in den Taschen suchen und mit Delay in einen freien Handelsslot legen
+    local delay = 0
     for _, itemID in ipairs(itemIDs) do
-        local tradeSlot = nextFreeTradeSlot()
-        if not tradeSlot then break end  -- Alle 6 Slots belegt
+        local capturedID    = itemID
+        local capturedDelay = delay
+        delay = delay + 0.1
 
-        for bag = 0, 4 do
-            local placed = false
-            for slot = 1, C_Container.GetContainerNumSlots(bag) do
-                local info = C_Container.GetContainerItemInfo(bag, slot)
-                if info and info.itemID == itemID then
-                    PickupContainerItem(bag, slot)
-                    if CursorHasItem() then
-                        local tradeBtn = _G["TradePlayerItem" .. tradeSlot]
-                        if tradeBtn then tradeBtn:Click() end
+        C_Timer.After(capturedDelay, function()
+            local tradeSlot = nextFreeTradeSlot()
+            if not tradeSlot then return end
+
+            for bag = 0, 4 do
+                for slot = 1, C_Container.GetContainerNumSlots(bag) do
+                    local info = C_Container.GetContainerItemInfo(bag, slot)
+                    if info and info.itemID == capturedID then
+                        ClearCursor()
+                        C_Container.PickupContainerItem(bag, slot)
+                        if CursorHasItem() then
+                            ClickTradeButton(tradeSlot)
+                        end
+                        return
                     end
-                    placed = true
-                    break
                 end
             end
-            if placed then break end
-        end
+        end)
     end
 end
 
