@@ -1,5 +1,7 @@
 # RaidLootTracker – Todo
 
+> **Geplant (nach PR-Merge):** Addon-Rename zu **RequiemRaidTools** (Abk. `Reqrt`) + Versionierung auf `Major.Minor.Patch.Build` (Stable) / `Major.Minor.Patch.Build-beta` (Test-Addon)
+
 ## Konvention
 Erledigte Items werden mit zwei Checkboxen markiert:
 `erledigt: [x] getestet: [ ]`
@@ -10,7 +12,7 @@ Erledigte Items werden mit zwei Checkboxen markiert:
 
 ### Spieler-Tab: Aufklappbare Loot-Historie
 
-- [ ] **Expandable Player Rows**
+- [x] **Expandable Player Rows**
   Jede Zeile im Spieler-Tab aufklappbar. Beim Aufklappen erscheinen alle erhaltenen Items
   des aktuellen Raids als eingerückte Sub-Rows (Item, Kategorie, Schwierigkeitsgrad, Prio).
   - Toggle-Button `▶`/`▼` links vom Namen (16px), restliche Spalten bleiben unverändert
@@ -29,12 +31,12 @@ Erledigte Items werden mit zwei Checkboxen markiert:
   - Aktueller Raid zuerst, danach ältere Raids chronologisch absteigend
   - Optional: Limit auf letzte N Raids oder letzte X Items
 
-- [ ] **Bei lootverteilung mit prio 4 sollen die bevorzugt werden die das item tragen können**
+- [x] **Bei lootverteilung mit prio 4 sollen die bevorzugt werden die das item tragen können**
         Platte aber nur platte und nicht auch stoff, leder und schwere rüstung
 
-- [ ] **wenn zwei mal das identische Item droppt sollten beide (oder mehr) Items mit einem gang verrollt werden können**
+- [x] **wenn zwei mal das identische Item droppt sollten beide (oder mehr) Items mit einem gang verrollt werden können**
 
-- [ ] NEW **Wenn mehrere das addon haben, wenn ml nen raid startet, könnte es evtl ne notification bei den anderen geben die gesyncd sind/oder das Fenster öffnet sich**
+- [ ] NEW **Startet der ML einen Raid soll es einen broadcast an alle OBS geben, diese bekommen eine Meldung das ein Raid gestartet wurde**
 
 ## Bugs
 
