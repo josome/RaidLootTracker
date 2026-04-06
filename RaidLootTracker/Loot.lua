@@ -713,7 +713,10 @@ function Loot.OnTradeShow()
     -- Handelspartner-Name aus dem Trade-Frame lesen
     local recipientFrame = TradeFrameRecipientNameText
     if not recipientFrame then return end
-    local partnerName = GL.ShortName(recipientFrame:GetText() or "")
+    local rawText = recipientFrame:GetText() or ""
+    -- WoW-Farbcodes entfernen: GetText() gibt Namen mit Klassen-Farbcodes zurück (z.B. |cff1eff00Name|r)
+    local cleanText = rawText:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+    local partnerName = GL.ShortName(cleanText)
     if partnerName == "" then return end
 
     -- Alle offenen Zuweisungen für diesen Spieler sammeln und aus Liste entfernen
@@ -731,7 +734,7 @@ function Loot.OnTradeShow()
     local function nextFreeTradeSlot()
         for i = 1, 6 do
             local slotName = GetTradePlayerItemInfo(i)
-            if not slotName then return i end
+            if not slotName or slotName == "" then return i end
         end
         return nil
     end
@@ -748,7 +751,8 @@ function Loot.OnTradeShow()
                 if info and info.itemID == itemID then
                     PickupContainerItem(bag, slot)
                     if CursorHasItem() then
-                        _G["TradePlayerItem" .. tradeSlot]:Click()
+                        local tradeBtn = _G["TradePlayerItem" .. tradeSlot]
+                        if tradeBtn then tradeBtn:Click() end
                     end
                     placed = true
                     break
