@@ -37,10 +37,25 @@ Erledigte Items werden mit zwei Checkboxen markiert:
 - [x] **wenn zwei mal das identische Item droppt sollten beide (oder mehr) Items mit einem gang verrollt werden können**
 
 - [ ] NEW **Startet der ML einen Raid soll es einen broadcast an alle OBS geben, diese bekommen eine Meldung das ein Raid gestartet wurde**
-
+- [ ] Einstellen der Prioritäten 1-5 über settings mit [] für aktiv und mit Freitext für Name, und Beschreibung 
+      [x] Prio: 1 = <BIS> Description: <Best in Slot>
+      [x] Prio: 2 = <OS> Description: <Offspec>
+      [] Prio: 3 = <> Description: <>
+      [x] Prio: 4 = <Tmog> Description: <Transmog>
+      [] Prio: 5 = <> Description: <>
+      Problem, inkosistenz mit alten Raids, aber da diese Ergebnisse im Raid gespeichert werden sind sie weiterhin ansehbar
+- [ ] OBS sollte die Itemliste bekommen, damit er sieht wie weit die Lootvergabe fortgeschritten ist
+- [ ] wie kann gehandelt werden das unbefugte die das Item über CurseForge runtergeladen haben sich den Masterlooter im raid erschleichen? Password, oder ML sieht alle OBS und kann diese ausschließen?
+- [ ] whisper an gewinner
 ## Bugs
+ 
+- Prio 4 [ ] Prio wird dem OBS nicht mit übertragen,
 
-- [ ] (kein offener Bug)
+- Prio 2 [ ] Token werden nicht zuverlässig getradet
+- Prio 3 [ ] ML übergabe alter ML steht noch in Leiste
+- Prio 1 [ ] wenn der ML den boss nicht looten kann weil items schon verrollt erscheinen diese nicht im Addon unter Pending Loot
+
+
 
 ---
 
@@ -94,3 +109,5 @@ Erledigte Items werden mit zwei Checkboxen markiert:
 - [ ] **JSON-Export-Fenster scrollbar machen**
   Das Export-Textfeld ist aktuell nicht scrollbar, der Inhalt geht über das Fenster hinaus.
   → ScrollFrame um das Export-TextBox ergänzen, oder EditBox mit `SetMultiLine(true)` + Scroll-Wrapper
+
+

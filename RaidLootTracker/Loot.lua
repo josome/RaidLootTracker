@@ -706,65 +706,75 @@ end
 
 -- Wird bei TRADE_SHOW aufgerufen: legt alle zugewiesenen Items automatisch in den Handel,
 -- wenn der Handelspartner ein bekannter Gewinner ist (bis zu 6 Slots).
+-- Fix: Gesamte Logik um 0.1s verzögert (TRADE_SHOW kann vor Frame-Befüllung feuern).
+-- Fix: CursorHasItem()-Guard entfernt (WoW ignoriert ClickTradeButton mit leerem Cursor).
+-- Fix: strtrim() auf Partner-Namen (Whitespace-Schutz).
+-- Fix: Cross-Realm-Suffix "(*)"-Stripping (RCLootCouncil-Pattern).
 function Loot.OnTradeShow()
     if not GL.IsMasterLooter() then return end
     if #Loot._pendingTrades == 0 then return end
 
-    -- Handelspartner-Name aus dem Trade-Frame lesen
-    local recipientFrame = TradeFrameRecipientNameText
-    if not recipientFrame then return end
-    local rawText = recipientFrame:GetText() or ""
-    -- WoW-Farbcodes entfernen: GetText() gibt Namen mit Klassen-Farbcodes zurück (z.B. |cff1eff00Name|r)
-    local cleanText = rawText:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
-    local partnerName = GL.ShortName(cleanText)
-    if partnerName == "" then return end
+    C_Timer.After(0.1, function()
+        -- Re-Check nach Delay
+        if #Loot._pendingTrades == 0 then return end
 
-    -- Alle offenen Zuweisungen für diesen Spieler sammeln und aus Liste entfernen
-    local itemIDs = {}
-    for i = #Loot._pendingTrades, 1, -1 do
-        local pt = Loot._pendingTrades[i]
-        if pt.shortName == partnerName then
-            table.insert(itemIDs, pt.itemID)
-            table.remove(Loot._pendingTrades, i)
+        -- Handelspartner-Name aus dem Trade-Frame lesen
+        local recipientFrame = TradeFrameRecipientNameText
+        if not recipientFrame then return end
+        -- WoW-Farbcodes entfernen + Whitespace trimmen
+        local rawText = strtrim(recipientFrame:GetText() or "")
+        local cleanText = strtrim(rawText:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""))
+        -- Cross-Realm-Suffix entfernen: "Name(*)" oder "Name (Realm)" → "Name"
+        -- (RCLootCouncil-Pattern: TRADE_SHOW liefert bei Cross-Realm "Name(*)" statt "Name-Realm")
+        cleanText = strtrim(cleanText:gsub("%s*%(.*%)$", ""))
+        local partnerName = GL.ShortName(cleanText)
+        if partnerName == "" then return end
+
+        -- Alle offenen Zuweisungen für diesen Spieler sammeln und aus Liste entfernen
+        local itemIDs = {}
+        for i = #Loot._pendingTrades, 1, -1 do
+            local pt = Loot._pendingTrades[i]
+            if pt.shortName == partnerName then
+                table.insert(itemIDs, pt.itemID)
+                table.remove(Loot._pendingTrades, i)
+            end
         end
-    end
-    if #itemIDs == 0 then return end
+        if #itemIDs == 0 then return end
 
-    -- Nächsten freien Handelsslot finden (Hilfsfunktion)
-    local function nextFreeTradeSlot()
-        for i = 1, 6 do
-            local slotName = GetTradePlayerItemInfo(i)
-            if not slotName or slotName == "" then return i end
+        -- Nächsten freien Handelsslot finden (Hilfsfunktion)
+        local function nextFreeTradeSlot()
+            for i = 1, 6 do
+                local slotName = GetTradePlayerItemInfo(i)
+                if not slotName or slotName == "" then return i end
+            end
+            return nil
         end
-        return nil
-    end
 
-    -- Jedes Item in den Taschen suchen und mit Delay in einen freien Handelsslot legen
-    local delay = 0
-    for _, itemID in ipairs(itemIDs) do
-        local capturedID    = itemID
-        local capturedDelay = delay
-        delay = delay + 0.1
+        -- Jedes Item in den Taschen suchen und mit Delay in einen freien Handelsslot legen
+        local delay = 0
+        for _, itemID in ipairs(itemIDs) do
+            local capturedID    = itemID
+            local capturedDelay = delay
+            delay = delay + 0.1
 
-        C_Timer.After(capturedDelay, function()
-            local tradeSlot = nextFreeTradeSlot()
-            if not tradeSlot then return end
+            C_Timer.After(capturedDelay, function()
+                local tradeSlot = nextFreeTradeSlot()
+                if not tradeSlot then return end
 
-            for bag = 0, 4 do
-                for slot = 1, C_Container.GetContainerNumSlots(bag) do
-                    local info = C_Container.GetContainerItemInfo(bag, slot)
-                    if info and info.itemID == capturedID then
-                        ClearCursor()
-                        C_Container.PickupContainerItem(bag, slot)
-                        if CursorHasItem() then
+                for bag = 0, 4 do
+                    for slot = 1, C_Container.GetContainerNumSlots(bag) do
+                        local info = C_Container.GetContainerItemInfo(bag, slot)
+                        if info and info.itemID == capturedID then
+                            ClearCursor()
+                            C_Container.PickupContainerItem(bag, slot)
                             ClickTradeButton(tradeSlot)
+                            return
                         end
-                        return
                     end
                 end
-            end
-        end)
-    end
+            end)
+        end
+    end)
 end
 
 function Loot.ResetCurrentItem()
